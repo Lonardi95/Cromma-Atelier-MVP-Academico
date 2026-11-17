@@ -1,4 +1,5 @@
 """Aplicação demonstrativa CROMMA ATELIER SYSTEM — dados exclusivamente fictícios."""
+import os
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from database import connect, initialize
 from inventory import EstoqueInvalido, movimentar
@@ -18,6 +19,19 @@ def garantir_dados_demo():
             "INSERT OR IGNORE INTO produtos(nome,sku,tipo,estoque_atual) VALUES(?,?,?,?)",
             ("Moldura preta 60 × 40 cm", "DEMO-MAT001", "material", 8),
         )
+
+
+@app.get("/health")
+def health():
+    """Monitoramento basico de disponibilidade e acesso ao banco demonstrativo."""
+    try:
+        garantir_dados_demo()
+        with connect() as con:
+            con.execute("SELECT 1").fetchone()
+        return jsonify(status="ok", servico="cromma-mvp-academico"), 200
+    except Exception:
+        app.logger.exception("Falha na verificacao de saude")
+        return jsonify(status="erro"), 503
 
 
 @app.get("/")
@@ -66,6 +80,7 @@ def _render_pagina(pagina):
         movimentacoes=movimentacoes,
         alerta=alerta,
         alerta_classe=classe,
+        ambiente_temporario=bool(os.getenv("VERCEL")),
     )
 
 
