@@ -1,18 +1,82 @@
-"""Interface HTTP mínima do MVP acadêmico; sem autenticação, ainda em desenvolvimento."""
-from flask import Flask, jsonify, request
+"""Aplicação demonstrativa CROMMA ATELIER SYSTEM — dados exclusivamente fictícios."""
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from database import connect, initialize
 from inventory import EstoqueInvalido, movimentar
 
 app = Flask(__name__)
 
+
+def garantir_dados_demo():
+    """Inicializa as tabelas e adiciona somente itens de demonstração."""
+    initialize()
+    with connect() as con:
+        con.execute(
+            "INSERT OR IGNORE INTO produtos(nome,sku,tipo,estoque_atual) VALUES(?,?,?,?)",
+            ("Quadro Decorativo Abstrato 90 × 60 cm", "DEMO-QD001", "produto", 15),
+        )
+        con.execute(
+            "INSERT OR IGNORE INTO produtos(nome,sku,tipo,estoque_atual) VALUES(?,?,?,?)",
+            ("Moldura preta 60 × 40 cm", "DEMO-MAT001", "material", 8),
+        )
+
+
 @app.get("/")
 def inicio():
-    return jsonify(sistema="CROMMA ATELIER SYSTEM - MVP acadêmico", estado="em desenvolvimento")
+    garantir_dados_demo()
+    with connect() as con:
+        produtos_lista = [
+            dict(linha) for linha in con.execute(
+                "SELECT id,nome,sku,tipo,estoque_atual FROM produtos ORDER BY id"
+            )
+        ]
+        movimentacoes = con.execute(
+            "SELECT COUNT(*) FROM movimentacoes"
+        ).fetchone()[0]
+    estado = request.args.get("estado")
+    if estado == "ok":
+        acao = "Entrada" if request.args.get("acao") == "entrada" else "Saída"
+        saldo = request.args.get("saldo", "")
+        alerta = f"{acao} registrada com sucesso! Novo saldo: {saldo} unidade(s)."
+        classe = "success"
+    elif estado == "erro":
+        alerta = request.args.get("mensagem", "Não foi possível realizar a operação.")[:180]
+        classe = "error"
+    else:
+        alerta, classe = None, ""
+    return render_template(
+        "index.html",
+        produtos=produtos_lista,
+        unidades=sum(produto["estoque_atual"] for produto in produtos_lista),
+        movimentacoes=movimentacoes,
+        alerta=alerta,
+        alerta_classe=classe,
+    )
+
+
+@app.post("/interface/movimentar")
+def movimentar_interface():
+    garantir_dados_demo()
+    quantidade_texto = request.form.get("quantidade", "").strip()
+    try:
+        quantidade = int(quantidade_texto) if quantidade_texto.isdecimal() else None
+        produto_id_texto = request.form.get("produto_id", "").strip()
+        produto_id = int(produto_id_texto) if produto_id_texto.isdecimal() else None
+        tipo = request.form.get("tipo", "")
+        saldo = movimentar(produto_id, tipo, quantidade)
+    except EstoqueInvalido as erro:
+        return redirect(url_for("inicio", estado="erro", mensagem=str(erro)) + "#movimentacao")
+    return redirect(url_for("inicio", estado="ok", acao=tipo, saldo=saldo) + "#inicio")
+
 
 @app.get("/produtos")
 def produtos():
     with connect() as con:
-        return jsonify([dict(r) for r in con.execute("SELECT id,nome,sku,tipo,estoque_atual FROM produtos ORDER BY id")])
+        return jsonify([
+            dict(linha) for linha in con.execute(
+                "SELECT id,nome,sku,tipo,estoque_atual FROM produtos ORDER BY id"
+            )
+        ])
+
 
 @app.post("/movimentacoes")
 def registrar():
@@ -21,9 +85,10 @@ def registrar():
         return jsonify(erro="Envie um objeto JSON."), 400
     try:
         saldo = movimentar(data.get("produto_id"), data.get("tipo"), data.get("quantidade"))
-    except EstoqueInvalido as exc:
-        return jsonify(erro=str(exc)), 400
+    except EstoqueInvalido as erro:
+        return jsonify(erro=str(erro)), 400
     return jsonify(mensagem="Movimentação registrada.", saldo_atual=saldo), 201
+
 
 if __name__ == "__main__":
     initialize()
