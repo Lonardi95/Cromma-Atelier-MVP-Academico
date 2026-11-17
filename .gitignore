@@ -221,3 +221,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local academic demo SQLite database
+mvp.sqlite3
+mvp.sqlite3-shm
+mvp.sqlite3-wal
