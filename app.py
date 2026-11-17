@@ -20,8 +20,7 @@ def garantir_dados_demo():
         )
 
 
-@app.get("/")
-def inicio():
+@app.get("/")\n@app.get("/painel")\ndef inicio():
     garantir_dados_demo()
     with connect() as con:
         produtos_lista = [
@@ -53,7 +52,7 @@ def inicio():
     )
 
 
-@app.post("/interface/movimentar")
+@app.get("/estoque")\ndef pagina_produtos():\n    return _render_pagina("produtos")\n\n\n@app.get("/nova-movimentacao")\ndef pagina_movimentacao():\n    return _render_pagina("movimentacao")\n\n\n@app.post("/interface/movimentar")
 def movimentar_interface():
     garantir_dados_demo()
     quantidade_texto = request.form.get("quantidade", "").strip()
@@ -64,8 +63,8 @@ def movimentar_interface():
         tipo = request.form.get("tipo", "")
         saldo = movimentar(produto_id, tipo, quantidade)
     except EstoqueInvalido as erro:
-        return redirect(url_for("inicio", estado="erro", mensagem=str(erro)) + "#movimentacao")
-    return redirect(url_for("inicio", estado="ok", acao=tipo, saldo=saldo) + "#inicio")
+        return redirect(url_for("pagina_movimentacao", estado="erro", mensagem=str(erro)))
+    return redirect(url_for("pagina_movimentacao", estado="ok", acao=tipo, saldo=saldo))
 
 
 @app.get("/produtos")
