@@ -36,7 +36,7 @@ Para voltar aos saldos fictícios iniciais: interrompa o servidor e exclua apena
 - Layout adaptável para celular;
 - Botões e opções com áreas de toque amplas.
 
-Esses recursos apoiam o **ODS 8, meta 8.3**, por facilitar o acesso de pequenos empreendimentos a ferramentas digitais. A aplicação ainda **não implementa autenticação e autorização**, portanto deve ser executada somente localmente, para fins acadêmicos.
+Esses recursos apoiam o **ODS 8, meta 8.3**, por facilitar o acesso de pequenos empreendimentos a ferramentas digitais. A aplicação ainda **não implementa autenticação e autorização**. Sua versão pública na Vercel destina-se **exclusivamente à demonstração acadêmica com dados fictícios**, sem uso de dados reais. A persistência SQLite na Vercel utiliza diretório temporário: as movimentações **podem desaparecer a qualquer momento** e não devem ser usadas para operações empresariais reais.
 
 ## Testes
 
@@ -45,3 +45,11 @@ py -m unittest discover -s tests -v
 ```
 
 O GitHub Actions executa testes e cobertura automaticamente em alterações na branch principal.
+
+## Demonstração na nuvem (Vercel)
+
+- Entrada Flask: `app.py`; configuração: `vercel.json`.
+- Rota GET `/health`: retorna HTTP 200 e `status: ok` quando a aplicação e seu banco demonstrativo respondem, ou HTTP 503 em falha.
+- O SQLite da nuvem usa armazenamento temporário (`/tmp`) e **não garante persistência** entre execuções; os saldos podem retornar aos valores demonstrativos originais.
+- Para monitoramento, configure no serviço de sua preferência uma requisição HTTP GET periódica à URL pública `/health`, verificando status 200. A configuração do serviço externo precisa ser feita após a publicação.
+- Não utilizar dados reais nem considerar a versão pública um sistema de produção empresarial.
