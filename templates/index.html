@@ -51,7 +51,7 @@
     .alert.success { background:#e4f3e9; border-color:#3b8060; color:var(--good); }
     .alert.error { background:#fff0ed; border-color:#b45a58; color:var(--bad); }
     .footnote { font-size:12px; color:var(--muted); margin-top:22px; }
-    @media(max-width:930px) { .content{grid-template-columns:1fr;} }
+    .pagina-produtos { grid-template-columns:1fr; } .pagina-produtos #movimentacao { display:none; } .pagina-movimentacao { grid-template-columns:minmax(0,1fr) minmax(280px,1fr); } .pagina-movimentacao #movimentacao { order:-1; }\n    @media(max-width:930px) { .content{grid-template-columns:1fr;} }
     @media(max-width:650px) { .layout{display:block;} aside{padding:20px;} nav{margin-top:20px;display:flex;flex-wrap:wrap;} main{padding:27px 17px;} .metrics{grid-template-columns:1fr;} .panel{padding:17px;} .table-wrap{overflow-x:auto;} table{min-width:380px;} }
     @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; } }
   </style>
@@ -61,14 +61,14 @@
   <aside>
     <div class="brand">CROMMA<small>ATELIER SYSTEM</small></div>
     <nav aria-label="Menu principal">
-      <a href="#inicio" aria-current="page">Início</a>
-      <a href="#produtos">Produtos e estoque</a>
-      <a href="#movimentacao">Movimentar estoque</a>
+      <a href="{{ url_for('inicio') }}" {% if pagina == "inicio" %}aria-current="page"{% endif %}>Início</a>
+      <a href="{{ url_for('pagina_produtos') }}" {% if pagina == "produtos" %}aria-current="page"{% endif %}>Produtos e estoque</a>
+      <a href="{{ url_for('pagina_movimentacao') }}" {% if pagina == "movimentacao" %}aria-current="page"{% endif %}>Movimentar estoque</a>
     </nav>
   </aside>
   <main id="inicio">
-    <div class="eyebrow">Painel administrativo · Demonstração acadêmica</div>
-    <h1>Gestão simples, decisões mais claras.</h1>
+    <div class="eyebrow">{% if pagina == "produtos" %}Consulta de estoque{% elif pagina == "movimentacao" %}Operação de estoque{% else %}Painel administrativo{% endif %} · Demonstração acadêmica</div>
+    <h1>{% if pagina == "produtos" %}Produtos e materiais{% elif pagina == "movimentacao" %}Registrar movimentação{% else %}Gestão simples, decisões mais claras.{% endif %}</h1>
     <p class="intro">Acompanhe produtos e registre entradas ou saídas de estoque em uma interface acessível e adaptada para dispositivos móveis.</p>
     <span class="tag">Ambiente de demonstração — Dados fictícios</span>
     <div class="metrics" aria-label="Indicadores gerais">
@@ -79,7 +79,7 @@
     {% if alerta %}
       <div class="alert {{ alerta_classe }}" role="alert" aria-live="polite">{{ alerta }}</div>
     {% endif %}
-    <div class="content">
+    <div class="content {% if pagina == 'produtos' %}pagina-produtos{% elif pagina == 'movimentacao' %}pagina-movimentacao{% endif %}">
       <section class="panel" id="produtos" aria-labelledby="titulo-produtos">
         <h2 id="titulo-produtos">Produtos e materiais</h2>
         <p class="section-note">Estoque atualizado a partir das movimentações registradas.</p>
