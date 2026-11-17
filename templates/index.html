@@ -10,6 +10,18 @@
     body { margin:0; font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--paper); color:var(--ink); }
     a { color:inherit; }
     :focus-visible { outline:3px solid #bd7738; outline-offset:3px; }
+    body.high-contrast { --ink:#fff; --muted:#f1f1f1; --paper:#000; --card:#111; --line:#fff; --accent:#ffdf00; --accentdark:#ffdf00; --good:#fff; --bad:#fff; }
+    body.high-contrast aside { background:#000; border-right:2px solid #ffdf00; }
+    body.high-contrast nav a[aria-current="page"] { background:#ffdf00; color:#000; }
+    body.high-contrast .tag, body.high-contrast .stock { background:#ffdf00; color:#000; }
+    body.high-contrast .eyebrow { color:#ffdf00; }
+    body.high-contrast select, body.high-contrast input { background:#000; color:#fff; border:2px solid #fff; }
+    body.high-contrast button { background:#ffdf00; color:#000; }
+    body.high-contrast .alert.success { background:#123c27; color:#fff; border-color:#ffdf00; }
+    body.high-contrast .alert.error { background:#5b1010; color:#fff; border-color:#ffdf00; }
+    body.high-contrast .choice { border-color:#fff; }
+    .contrast-toggle { margin-top:28px; background:transparent; border:2px solid #eee; color:#fff; text-align:left; }
+    .contrast-toggle[aria-pressed="true"] { background:#ffdf00; color:#000; border-color:#ffdf00; }
     .layout { display:grid; grid-template-columns:230px minmax(0,1fr); min-height:100vh; }
     aside { background:#302e29; color:#f6f0e5; padding:30px 20px; }
     .brand { font-family:Georgia,serif; font-size:24px; letter-spacing:.14em; line-height:1.15; }
@@ -66,6 +78,7 @@
       <a href="{{ url_for('pagina_produtos') }}" {% if pagina == "produtos" %}aria-current="page"{% endif %}>Produtos e estoque</a>
       <a href="{{ url_for('pagina_movimentacao') }}" {% if pagina == "movimentacao" %}aria-current="page"{% endif %}>Movimentar estoque</a>
     </nav>
+    <button type="button" id="contrast-toggle" class="contrast-toggle" aria-pressed="false" aria-label="Ativar modo de alto contraste">◐ Ativar alto contraste</button>
   </aside>
   <main id="inicio">
     <div class="eyebrow">{% if pagina == "produtos" %}Consulta de estoque{% elif pagina == "movimentacao" %}Operação de estoque{% else %}Painel administrativo{% endif %} · Demonstração acadêmica</div>
@@ -120,5 +133,23 @@
     <p class="footnote">CROMMA ATELIER SYSTEM · MVP acadêmico · Os dados utilizados nesta versão são exclusivamente demonstrativos.</p>
   </main>
 </div>
+<script>
+(function () {
+  const toggle = document.getElementById("contrast-toggle");
+  const enabled = sessionStorage.getItem("cromma-high-contrast") === "true";
+  function apply(active) {
+    document.body.classList.toggle("high-contrast", active);
+    toggle.setAttribute("aria-pressed", String(active));
+    toggle.setAttribute("aria-label", active ? "Desativar modo de alto contraste" : "Ativar modo de alto contraste");
+    toggle.textContent = active ? "◐ Alto contraste ativado" : "◐ Ativar alto contraste";
+  }
+  apply(enabled);
+  toggle.addEventListener("click", function () {
+    const active = !document.body.classList.contains("high-contrast");
+    sessionStorage.setItem("cromma-high-contrast", String(active));
+    apply(active);
+  });
+})();
+</script>
 </body>
 </html>
