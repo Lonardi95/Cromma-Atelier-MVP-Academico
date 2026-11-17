@@ -1,8 +1,10 @@
 """Persistência SQLite do MVP acadêmico, sem dados reais."""
 import sqlite3
+import os
+import tempfile
 from pathlib import Path
 
-DB_PATH = Path(__file__).with_name("mvp.sqlite3")
+DB_PATH = (Path(tempfile.gettempdir()) / "cromma-mvp-demo.sqlite3") if os.getenv("VERCEL") else Path(__file__).with_name("mvp.sqlite3")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS produtos (
