@@ -49,6 +49,7 @@
     td,th { padding:14px 10px; border-bottom:1px solid #e7e0d5; }
     td:first-child,th:first-child { padding-left:0; }
     td:last-child,th:last-child { padding-right:0; text-align:right; }
+    .search-field { margin:0 0 17px; }
     .product-name { display:block; font-weight:650; }
     .sku { font-size:12px; color:var(--muted); }
     .stock { display:inline-block; font-size:14px; font-weight:800; background:#e6f0e6; color:#185335; border-radius:8px; padding:5px 10px; }
@@ -97,12 +98,15 @@
       <section class="panel" id="produtos" aria-labelledby="titulo-produtos">
         <h2 id="titulo-produtos">Produtos e materiais</h2>
         <p class="section-note">Estoque atualizado a partir das movimentações registradas.</p>
+        <label for="busca-produtos">Buscar por nome ou SKU</label>
+        <input class="search-field" id="busca-produtos" type="search" placeholder="Digite o nome ou SKU" autocomplete="off" aria-controls="tabela-produtos">
+        <p id="busca-sem-resultados" class="section-note" role="status" hidden>Nenhum produto encontrado para a pesquisa.</p>
         <div class="table-wrap">
-          <table>
+          <table id="tabela-produtos">
             <thead><tr><th scope="col">Item</th><th scope="col">Tipo</th><th scope="col">Saldo</th></tr></thead>
             <tbody>
             {% for produto in produtos %}
-            <tr><td><span class="product-name">{{ produto.nome }}</span><span class="sku">SKU {{ produto.sku }}</span></td><td>{{ "Produto" if produto.tipo == "produto" else "Material" }}</td><td><span class="stock">{{ produto.estoque_atual }}</span></td></tr>
+            <tr class="produto-linha" data-busca="{{ (produto.nome ~ ' ' ~ produto.sku)|lower|e }}"><td><span class="product-name">{{ produto.nome }}</span><span class="sku">SKU {{ produto.sku }}</span></td><td>{{ "Produto" if produto.tipo == "produto" else "Material" }}</td><td><span class="stock">{{ produto.estoque_atual }}</span></td></tr>
             {% endfor %}
             </tbody>
           </table>
@@ -143,6 +147,20 @@
     toggle.setAttribute("aria-label", active ? "Desativar modo de alto contraste" : "Ativar modo de alto contraste");
     toggle.textContent = active ? "◐ Alto contraste ativado" : "◐ Ativar alto contraste";
   }
+  const busca = document.getElementById("busca-produtos");
+  const linhas = Array.from(document.querySelectorAll(".produto-linha"));
+  const vazio = document.getElementById("busca-sem-resultados");
+  const normalizar = (texto) => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  busca.addEventListener("input", function () {
+    const termo = normalizar(busca.value);
+    let visiveis = 0;
+    linhas.forEach(function (linha) {
+      const corresponde = normalizar(linha.dataset.busca).includes(termo);
+      linha.hidden = !corresponde;
+      if (corresponde) visiveis++;
+    });
+    vazio.hidden = visiveis !== 0;
+  });
   apply(enabled);
   toggle.addEventListener("click", function () {
     const active = !document.body.classList.contains("high-contrast");
