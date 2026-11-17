@@ -20,7 +20,23 @@ def garantir_dados_demo():
         )
 
 
-@app.get("/")\n@app.get("/painel")\ndef inicio():
+@app.get("/")
+@app.get("/painel")
+def inicio():
+    return _render_pagina("inicio")
+
+
+@app.get("/estoque")
+def pagina_produtos():
+    return _render_pagina("produtos")
+
+
+@app.get("/nova-movimentacao")
+def pagina_movimentacao():
+    return _render_pagina("movimentacao")
+
+
+def _render_pagina(pagina):
     garantir_dados_demo()
     with connect() as con:
         produtos_lista = [
@@ -44,6 +60,7 @@ def garantir_dados_demo():
         alerta, classe = None, ""
     return render_template(
         "index.html",
+        pagina=pagina,
         produtos=produtos_lista,
         unidades=sum(produto["estoque_atual"] for produto in produtos_lista),
         movimentacoes=movimentacoes,
@@ -52,7 +69,7 @@ def garantir_dados_demo():
     )
 
 
-@app.get("/estoque")\ndef pagina_produtos():\n    return _render_pagina("produtos")\n\n\n@app.get("/nova-movimentacao")\ndef pagina_movimentacao():\n    return _render_pagina("movimentacao")\n\n\n@app.post("/interface/movimentar")
+@app.post("/interface/movimentar")
 def movimentar_interface():
     garantir_dados_demo()
     quantidade_texto = request.form.get("quantidade", "").strip()
